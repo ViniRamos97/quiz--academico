@@ -65,15 +65,32 @@
 
         <div class="question-box">
 
-            <!-- NÚMERO -->
-            <span
-                class="question-number"
-                id="questionNumber"
-            >
+            <!-- CABEÇALHO: número + setas -->
+            <div class="question-header">
 
-                Pergunta 1
+                <span
+                    class="question-number"
+                    id="questionNumber"
+                >
+                    Pergunta 1
+                </span>
 
-            </span>
+                <div class="arrow-buttons">
+                    <button
+                        class="btn-arrow"
+                        id="arrowVoltar"
+                        onclick="voltarPergunta()"
+                        title="Pergunta anterior"
+                    >&#8592;</button>
+                    <button
+                        class="btn-arrow"
+                        id="arrowProxima"
+                        onclick="proximaPergunta()"
+                        title="Próxima pergunta"
+                    >&#8594;</button>
+                </div>
+
+            </div>
 
             <!-- PERGUNTA -->
             <h2 id="questionText">
@@ -89,18 +106,22 @@
 
         </div>
 
-        <!-- BOTÃO -->
+        <!-- BOTÃO RESPONDER -->
         <button
             class="btn"
-            onclick="proximaPergunta()"
+            id="btnResponder"
+            onclick="responder()"
         >
-
-            Próxima Pergunta
-
+            Responder
         </button>
 
-        <button class="btn" onclick="responder()">
-            responder
+        <!-- BOTÃO PRÓXIMA -->
+        <button
+            class="btn"
+            id="btnProxima"
+            onclick="proximaPergunta()"
+        >
+            Próxima Pergunta
         </button>
 
     </div>
@@ -219,5 +240,4 @@
 </body>
 
 </html>
-
 
