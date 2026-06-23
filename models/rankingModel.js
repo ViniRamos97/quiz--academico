@@ -23,12 +23,12 @@ export async function salvarPontuacao(
     nome,
     pontos
 ) {
-
+// 
     await pool.query(`
 
         UPDATE usuario
 
-        SET pontuacao = pontuacao + ?
+       SET pontuacao = ?
 
         WHERE nome = ?
 

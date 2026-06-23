@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selecionar Módulo</title>
+
+
+  <link rel="stylesheet" href="/css/quiz.css">
+  <link rel="stylesheet" href="/css/tela_modulo.css">
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Desenvolvimento de Sistemas</h1>
+
+    <p id="boasVindas" style="margin-bottom:10px;"></p>
+
+    <div class="modules-grid">
+
+      <div class="module-card" data-module-id="1" id="modulo-1">
+        <span class="module-number">1°</span>
+        <div class="module-title">módulo</div>
+        <div class="module-meta">15 perguntas · nível 1</div>
+      </div>
+
+      <div class="module-card" data-module-id="2" id="modulo-2">
+        <span class="module-number">2°</span>
+        <div class="module-title">módulo</div>
+        <div class="module-meta">15 perguntas · nível 2</div>
+      </div>
+
+      <div class="module-card" data-module-id="3" id="modulo-3">
+        <span class="module-number">3°</span>
+        <div class="module-title">módulo</div>
+        <div class="module-meta">15 perguntas · nível 3</div>
+      </div>
+
+    </div>
+
+    <button class="btn" id="voltarBtn" style="max-width:140px;margin:25px auto 0;display:block;">Voltar</button>
+
+  </div>
+
+  <script>
+    // Exibe o nome do usuário logado
+    const nomeUsuario = localStorage.getItem('usuario');
+    const boasVindas = document.getElementById('boasVindas');
+
+    if (nomeUsuario) {
+      boasVindas.textContent = `Bem-vindo, ${nomeUsuario}! Selecione um módulo para começar`;
+    } else {
+      boasVindas.textContent = 'Selecione um módulo para começar';
+    }
+
+    // Liga os cartões para navegar para a tela de disciplinas
+    document.querySelectorAll('.module-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const moduloId = card.getAttribute('data-module-id');
+
+// Redireciona para a rota de disciplinas do módulo selecionado
+    window.location.href = `/modulo/disciplinas/${moduloId}`;
+      });
+    });
+
+    // Botão voltar mantém o padrão das outras telas
+    document.getElementById('voltarBtn').addEventListener('click', () => {
+      window.location.href = '/';
+    });
+  </script>
+
+  <script src="/js/header.js"></script>
+</body>
+
+</html>

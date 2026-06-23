@@ -15,12 +15,12 @@ router.get("/login.html", (req, res) => {
 });
 
 // Cadastro
-router.get("./../views/cadastro", (req, res) => {
+router.get("/cadastro.html", (req, res) => {
   res.sendFile(path.join(process.cwd(), "cadastro.html"));
 });
 
 // Redefinir senha
-router.get("./../views/redefinir.htmL", (req, res) => {
+router.get("/redefinir.html", (req, res) => {
   res.sendFile(path.join(process.cwd(), "redefinir.html"));
 });
 
@@ -29,9 +29,14 @@ router.get("./../views/trocarSenha.html", (req, res) => {
   res.sendFile(path.join(process.cwd(), "trocarSenha.html"));
 });
 
+// Disciplinas do módulo
+router.get("/disciplinas.html", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "views/disciplinas.html"));
+});
+
 // Trocar senha
 router.get("/quiz", (req, res) => {
-  res.sendFile(path.join(process.cwd(), "quiz.html"));
+  res.sendFile(path.join(process.cwd(), "login.html"));
 });
 
 router.post("/login", async (req, res) => {
@@ -65,7 +70,12 @@ router.post("/login", async (req, res) => {
 
     // login OK
     return res.status(200).json({
-      success: true
+      success: true,
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email
+      }
     });
 
   } catch (erro) {

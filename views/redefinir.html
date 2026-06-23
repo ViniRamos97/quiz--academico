@@ -1,4 +1,4 @@
-l
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -96,7 +96,7 @@ l
 
       try {
 
-        const resposta = await fetch('/recuperar-senha', {
+        const resposta = await fetch('/recuperarsenha', {
 
           method: 'POST',
 
@@ -114,7 +114,7 @@ l
 
 
         // EMAIL ENVIADO
-        if (dados.mensagem) {
+        if (dados.message) {
 
           alert("📧 E-mail de recuperação enviado com sucesso!");
 

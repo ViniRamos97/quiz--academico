@@ -14,7 +14,7 @@ export async function cadastrarUser(req, res) {
       });
     }
 
-    const usuarioExistente = await verificarEmailExistente(email);
+    const usuarioExistente = await buscarUsuarioPorEmail(email);
 
     if (usuarioExistente) {
       return res.status(400).json({
@@ -85,7 +85,7 @@ export async function redefinirSenha(req, res) {
       });
     }
 
-    const usuario = await verificarEmailSenha(email);
+    const usuario = await buscarUsuarioPorEmail(email);
 
     if (!usuario) {
       return res.status(404).json({

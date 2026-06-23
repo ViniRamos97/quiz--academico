@@ -115,12 +115,15 @@
 
 
                 // LOGIN CORRETO
-                if (dados.success) {
+
+                if (resposta.ok) {
+
+                    localStorage.setItem('usuario', dados.usuario.nome);
 
                     alert("Login realizado com sucesso!");
 
                     window.location.href =
-                        "quiz.html";
+                        "/modulo";
 
                 }
 
@@ -133,7 +136,6 @@
 
             }
 
-            
 
             // ERRO SERVIDOR
             catch (erro) {

@@ -27,7 +27,7 @@ async function showRanking() {
 
         const response =
             await fetch(
-                "/api/ranking/ranking"
+                "/api/ranking"
             );
 
         const ranking =

@@ -1,8 +1,23 @@
+
 let perguntas = [];
 
 let perguntaAtual = 0;
 
 let pontuacao = 0;
+
+let disciplinaAtualId = null;
+
+// Estado de cada pergunta: null = não respondida, true/false = acertou/errou
+let respostas = [];
+
+// ===============================
+// OBTER PARÂMETRO DA URL
+// ===============================
+
+function obterParametroURL(nome) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(nome);
+}
 
 
 // ===============================
@@ -13,8 +28,12 @@ async function carregarPerguntas() {
 
     try {
 
+        // Obtém a disciplina da URL, ou usa 1 como padrão
+        const disciplinaId = obterParametroURL('disciplina') || 1;
+        disciplinaAtualId = disciplinaId;
+
         const response = await fetch(
-            "http://localhost:3000/api/quiz/perguntas/1"
+            `http://localhost:3000/api/quiz/perguntas/${disciplinaId}`
         );
 
         if (!response.ok) {
@@ -24,11 +43,23 @@ async function carregarPerguntas() {
             );
         }
 
-        const dados =
-            await response.json();
+        const dados = await response.json();
 
-        perguntas =
-            organizarPerguntas(dados);
+        const todas = organizarPerguntas(dados);
+
+        // Seleciona 5 perguntas rotativas por disciplina usando localStorage
+        perguntas = selecionarPerguntasRotativas(todas, disciplinaId, 5);
+
+        // Inicializa o estado de respostas
+        respostas = perguntas.map(() => ({
+            respondida: false,   // já clicou em "Responder" e viu a correção
+            acertou: null,       // true/false após responder
+            alternativaSelecionada: null, // índice da alternativa escolhida
+            pontos: 0
+        }));
+
+        // DEBUG: mostra no console as perguntas selecionadas (ids)
+        console.log('Perguntas selecionadas (ids):', perguntas.map(p => p.id));
 
     } catch (error) {
 
@@ -121,8 +152,10 @@ function mostrarPergunta() {
     const pergunta =
         perguntas[perguntaAtual];
 
+    const estadoAtual = respostas[perguntaAtual];
+
     numeroPergunta.innerText =
-        `Pergunta ${perguntaAtual + 1}`;
+        `Pergunta ${perguntaAtual + 1}/ ${perguntas.length}`;
 
     tituloPergunta.innerText =
         pergunta.pergunta;
@@ -130,24 +163,134 @@ function mostrarPergunta() {
     container.innerHTML = "";
 
     pergunta.alternativas.forEach(
-        (alternativa) => {
+        (alternativa, index) => {
 
-            container.innerHTML += `
+            const label = document.createElement('label');
+            label.className = 'option';
 
-                <label class="option">
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'answer';
+            input.value = alternativa.correta;
+            input.dataset.index = index;
 
-                    <input
-                        type="radio"
-                        name="answer"
-                        value="${alternativa.correta}"
-                    >
+            // Se já respondeu, desabilita e colore
+            if (estadoAtual.respondida) {
+                input.disabled = true;
 
-                    ${alternativa.texto}
+                if (alternativa.correta == 1) {
+                    label.style.backgroundColor = '#4CAF50';
+                } else {
+                    label.style.backgroundColor = '#f44336';
+                }
 
-                </label>
-            `;
+                // Marca a alternativa que o usuário escolheu
+                if (estadoAtual.alternativaSelecionada === index) {
+                    input.checked = true;
+                }
+
+            } else {
+                // Se não respondeu ainda, restaura seleção anterior (caso volte)
+                if (estadoAtual.alternativaSelecionada === index) {
+                    input.checked = true;
+                }
+            }
+
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(' ' + alternativa.texto));
+            container.appendChild(label);
         }
     );
+
+    // Mostra feedback de pontos se já respondeu
+    atualizarFeedbackPontos();
+
+    // Atualiza botões de navegação
+    atualizarBotoes();
+}
+
+
+// ===============================
+// ATUALIZAR FEEDBACK DE PONTOS
+// ===============================
+
+function atualizarFeedbackPontos() {
+    let feedbackEl = document.getElementById('feedbackPontos');
+
+    if (!feedbackEl) {
+        feedbackEl = document.createElement('div');
+        feedbackEl.id = 'feedbackPontos';
+        feedbackEl.style.cssText = `
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            min-height: 28px;
+        `;
+        const questionBox = document.querySelector('.question-box');
+        questionBox.appendChild(feedbackEl);
+    }
+
+    const estadoAtual = respostas[perguntaAtual];
+
+    if (estadoAtual.respondida) {
+        if (estadoAtual.acertou) {
+            feedbackEl.style.color = '#4CAF50';
+            feedbackEl.innerText = `✓ Correto! +${estadoAtual.pontos} pontos`;
+        } else {
+            feedbackEl.style.color = '#f44336';
+            feedbackEl.innerText = `✗ Errado! 0 pontos`;
+        }
+    } else {
+        feedbackEl.innerText = '';
+    }
+}
+
+
+// ===============================
+// ATUALIZAR BOTÕES DE NAVEGAÇÃO
+// ===============================
+
+function atualizarBotoes() {
+    const btnProxima = document.getElementById('btnProxima');
+    const btnResponder = document.getElementById('btnResponder');
+
+    // Botão Próxima: "Próxima Pergunta" ou "Ver Resultado" na última
+    if (btnProxima) {
+        if (perguntaAtual === perguntas.length - 1) {
+            btnProxima.innerText = 'Ver Resultado';
+        } else {
+            btnProxima.innerText = 'Próxima Pergunta';
+        }
+    }
+
+    // Setas de navegação
+    const arrowVoltar = document.getElementById('arrowVoltar');
+    const arrowProxima = document.getElementById('arrowProxima');
+    if (arrowVoltar) arrowVoltar.disabled = perguntaAtual === 0;
+    if (arrowProxima) arrowProxima.disabled = false; // sempre habilitada (leva ao resultado na última)
+
+    // Botão Responder: oculto se já respondeu
+    if (btnResponder) {
+        const estadoAtual = respostas[perguntaAtual];
+        btnResponder.style.display = estadoAtual.respondida ? 'none' : 'block';
+    }
+}
+
+
+// ===============================
+// SALVAR SELEÇÃO ATUAL (antes de navegar)
+// ===============================
+
+function salvarSelecaoAtual() {
+    if (!respostas[perguntaAtual].respondida) {
+        const respostaSelecionada = document.querySelector('input[name="answer"]:checked');
+        if (respostaSelecionada) {
+            respostas[perguntaAtual].alternativaSelecionada = parseInt(respostaSelecionada.dataset.index);
+        } else {
+            respostas[perguntaAtual].alternativaSelecionada = null;
+        }
+    }
 }
 
 
@@ -156,6 +299,79 @@ function mostrarPergunta() {
 // ===============================
 
 function proximaPergunta() {
+
+    salvarSelecaoAtual();
+
+    perguntaAtual++;
+
+    if (
+        perguntaAtual <
+        perguntas.length
+    ) {
+
+        mostrarPergunta();
+
+    } else {
+
+        // Contabiliza perguntas não respondidas antes de mostrar resultado
+        contabilizarNaoRespondidas();
+        mostrarResultado();
+    }
+}
+
+
+// ===============================
+// VOLTAR PERGUNTA
+// ===============================
+
+function voltarPergunta() {
+    if (perguntaAtual > 0) {
+        salvarSelecaoAtual();
+        perguntaAtual--;
+        mostrarPergunta();
+    }
+}
+
+
+// ===============================
+// CONTABILIZAR NÃO RESPONDIDAS
+// ===============================
+
+function contabilizarNaoRespondidas() {
+    respostas.forEach((estado, index) => {
+        if (!estado.respondida) {
+            // Verifica se havia alternativa selecionada
+            const pergunta = perguntas[index];
+            if (estado.alternativaSelecionada !== null) {
+                const alternativa = pergunta.alternativas[estado.alternativaSelecionada];
+                const acertou = alternativa.correta == 1;
+                estado.acertou = acertou;
+                if (acertou) {
+                    estado.pontos = pergunta.pontuacao;
+                    pontuacao += pergunta.pontuacao;
+                } else {
+                    estado.pontos = 0;
+                }
+            } else {
+                estado.acertou = false;
+                estado.pontos = 0;
+            }
+            console.log(`Pergunta ${index + 1} (não respondida): ${estado.acertou ? 'Correta' : 'Errada'}`);
+        }
+    });
+}
+
+
+// ===============================
+// RESPONDER
+// ===============================
+
+function responder() {
+
+    const estadoAtual = respostas[perguntaAtual];
+
+    // Se já respondeu, não faz nada
+    if (estadoAtual.respondida) return;
 
     const respostaSelecionada =
         document.querySelector(
@@ -171,30 +387,56 @@ function proximaPergunta() {
         return;
     }
 
+    // Salva o índice da alternativa selecionada
+    estadoAtual.alternativaSelecionada = parseInt(respostaSelecionada.dataset.index);
+
+    const alternativas =
+        document.querySelectorAll(
+            '.option'
+        );
+
+    alternativas.forEach((label) => {
+
+        const radio =
+            label.querySelector(
+                'input'
+            );
+
+        if (radio.value == "1") {
+
+            label.style.backgroundColor =
+                "#4CAF50";
+
+        } else {
+
+            label.style.backgroundColor =
+                "#f44336";
+
+        }
+
+        radio.disabled = true;
+    });
+
     const acertou =
         respostaSelecionada.value == "1";
 
+    estadoAtual.respondida = true;
+    estadoAtual.acertou = acertou;
+
     if (acertou) {
-
-        pontuacao +=
-            perguntas[perguntaAtual]
-            .pontuacao;
-    }
-
-    perguntaAtual++;
-
-    if (
-        perguntaAtual <
-        perguntas.length
-    ) {
-
-        mostrarPergunta();
-
+        estadoAtual.pontos = perguntas[perguntaAtual].pontuacao;
+        pontuacao += perguntas[perguntaAtual].pontuacao;
     } else {
-
-        mostrarResultado();
+        estadoAtual.pontos = 0;
     }
+
+    // Mostra feedback de pontos
+    atualizarFeedbackPontos();
+
+    // Esconde o botão Responder
+    atualizarBotoes();
 }
+
 
 
 // ===============================
@@ -216,6 +458,9 @@ function mostrarResultado() {
     ).innerText =
         `${pontuacao} pontos`;
 
+    // incrementa rotação para próxima vez que entrar nessa disciplina
+    incrementarRotacao(disciplinaAtualId, perguntas.length);
+
     salvarPontuacao();
 }
 
@@ -226,8 +471,7 @@ function mostrarResultado() {
 
 async function salvarPontuacao() {
 
-    const nome =
-        prompt("Digite seu nome");
+    const nome = localStorage.getItem("usuario");
 
     try {
 
@@ -243,11 +487,9 @@ async function salvarPontuacao() {
                 },
 
                 body: JSON.stringify({
-
-                    nome,
-
-                    pontos: pontuacao
-                })
+    nome: nome,
+    pontos: pontuacao
+})
             }
         );
 
@@ -259,22 +501,66 @@ async function salvarPontuacao() {
 
 
 // ===============================
+// ROTINA DE ROTAÇÃO DE PERGUNTAS
+// ===============================
+
+function selecionarPerguntasRotativas(todasPerguntas, disciplinaId, limite) {
+    if (!Array.isArray(todasPerguntas) || todasPerguntas.length === 0) return [];
+
+    // garante ordem estável: ordena por `id` caso exista
+    const perguntasUnicas = todasPerguntas.slice().sort((a, b) => {
+        if (a.id != null && b.id != null) return a.id - b.id;
+        return 0;
+    });
+
+    const N = perguntasUnicas.length;
+
+    if (N <= limite) {
+        return perguntasUnicas.slice(0, limite);
+    }
+
+    const chave = `rotacao_disciplina_${disciplinaId}`;
+    let indice = parseInt(localStorage.getItem(chave) || '0', 10);
+    if (isNaN(indice) || indice < 0) indice = 0;
+
+    const selecionadas = [];
+    for (let i = 0; i < limite; i++) {
+        const idx = (indice + i) % N;
+        selecionadas.push(perguntasUnicas[idx]);
+    }
+
+    return selecionadas;
+}
+
+function incrementarRotacao(disciplinaId, usadasCount) {
+    if (!disciplinaId) return;
+    const chave = `rotacao_disciplina_${disciplinaId}`;
+    let indice = parseInt(localStorage.getItem(chave) || '0', 10);
+    if (isNaN(indice) || indice < 0) indice = 0;
+
+    const incremento = usadasCount || 5;
+    const novo = indice + incremento;
+    localStorage.setItem(chave, String(novo));
+}
+
+
+// ===============================
 // REINICIAR QUIZ
 // ===============================
 
-function restartQuiz() {
-
-    perguntaAtual = 0;
+async function restartQuiz() {
 
     pontuacao = 0;
 
-    document.getElementById(
+   document.getElementById(
         "resultScreen"
     ).style.display = "none";
 
     document.getElementById(
         "startScreen"
     ).style.display = "block";
+    window.location.href = "/modulo";
+    
 }
 
 

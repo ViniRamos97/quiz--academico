@@ -1,0 +1,123 @@
+/* ========================= */
+/* CONFIGURAÇÃO DA PÁGINA DISCIPLINAS */
+/* ========================= */
+
+body.disciplinas-page {
+  display: block;
+  overflow: auto;
+  align-items: unset;
+  padding-bottom: 40px;
+}
+
+body.disciplinas-page .container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 30px;
+}
+
+/* ========================= */
+/* GRID DE DISCIPLINAS */
+/* ========================= */
+
+.disciplines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* ========================= */
+/* CARTÃO DE DISCIPLINA */
+/* ========================= */
+
+.discipline-card {
+  padding: 20px;
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.25);
+  border: 2px solid rgba(124, 58, 237, 0.12);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 150px;
+  justify-content: center;
+}
+
+.discipline-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  border-color: rgba(124, 58, 237, 0.9);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.9),
+    0 0 40px rgba(59, 130, 246, 0.6);
+}
+
+.discipline-card:active {
+  transform: translateY(-4px) scale(1.01);
+}
+
+/* ========================= */
+/* SIGLA DA DISCIPLINA */
+/* ========================= */
+
+.discipline-sigla {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+  color: #c4b5fd;
+  text-shadow: 0 0 14px rgba(124, 58, 237, 0.5);
+  letter-spacing: 1px;
+}
+
+/* ========================= */
+/* NOME DA DISCIPLINA */
+/* ========================= */
+
+.discipline-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e6eef8;
+  line-height: 1.4;
+}
+
+/* ========================= */
+/* INFORMAÇÕES ADICIONAIS */
+/* ========================= */
+
+.discipline-info {
+  color: #9fb0d9;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* ========================= */
+/* RESPONSIVO */
+/* ========================= */
+
+@media (max-width: 768px) {
+  .disciplines-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .disciplines-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discipline-card {
+    padding: 20px;
+    min-height: 160px;
+  }
+
+  .discipline-sigla {
+    font-size: 28px;
+  }
+
+  .discipline-name {
+    font-size: 14px;
+  }
+}
